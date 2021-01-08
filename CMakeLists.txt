@@ -101,6 +101,11 @@ if(DEFINED WIN32)
 #  LINK_DIRECTORIES("D:/Program Files/MinGW/opt/lib/" "D:/Program Files/MinGW/x86_64-w64-mingw32/lib/")
 endif(DEFINED WIN32)
 
+set(n2n_EXTRA)
+if(DEFINED WIN32)
+  set(n2n_EXTRA src/edge_utils_win32.c)
+  add_subdirectory(win32)
+endif(DEFINED WIN32)
 
 #aux_source_directory(./src N2N_DIR_SRCS)
 #add_library(n2n STATIC ${N2N_DIR_SRCS})
@@ -129,7 +134,12 @@ add_library(n2n STATIC
         src/n2n_regex.c
         src/network_traffic_filter.c
         src/sn_selection.c)
+        ${n2n_EXTRA}
+        )
 
+if(DEFINED WIN32)
+  target_link_libraries(n2n n2n_win32)
+endif(DEFINED WIN32)
 
 if(N2N_OPTION_USE_OPENSSL)
 #  target_link_libraries(n2n crypto)

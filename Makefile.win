@@ -1,0 +1,16 @@
+.PHONY: all regen clean distclean
+
+export PATH := $(PWD)/mxe/usr/bin/:$(PATH)
+
+all:
+	-$(MAKE) -C build-win
+
+regen:
+	mkdir -p build-win
+	cd build-win ; i686-w64-mingw32.shared-cmake .. -DWIN32=true
+
+clean:
+	$(MAKE) -C build-win clean
+
+distclean:
+	-rm -rf build-win/

@@ -26,3 +26,5 @@ packages/etc/systemd/system/edge@.service
 packages/etc/systemd/system/supernode.service
 *dSYM*
 /mxe
+/mxe-static
+/build-win

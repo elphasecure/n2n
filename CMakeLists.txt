@@ -1,5 +1,5 @@
 project(n2n)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 include(CheckFunctionExists)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -31,6 +31,7 @@ endif (GIT_EXIST)
 add_definitions(-DCMAKE_BUILD)
 add_definitions(-DGIT_RELEASE="" -DPACKAGE_VERSION="${N2N_VERSION}" -DPACKAGE_OSNAME="${N2N_OSNAME}")
 add_definitions(-DN2N_VERSION="${N2N_VERSION}" -DN2N_OSNAME="${N2N_OSNAME}")
+add_definitions(-static)
 
 
 # Build information
@@ -123,8 +124,8 @@ if(DEFINED WIN32)
 endif(DEFINED WIN32)
 
 if(N2N_OPTION_AES)
-#  target_link_libraries(n2n crypto)
-  target_link_libraries(n2n ${OPENSSL_LIBRARIES})
+  target_link_libraries(n2n crypto)
+  #target_link_libraries(n2n ${OPENSSL_LIBRARIES})
 endif(N2N_OPTION_AES)
 
 

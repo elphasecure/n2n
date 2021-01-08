@@ -27,3 +27,5 @@ packages/etc/systemd/system/supernode.service
 *dSYM*
 cmake-build-*/
 /mxe
+/mxe-static
+/build-win

@@ -1,5 +1,5 @@
 project(n2n)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 include(CheckFunctionExists)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -34,6 +34,7 @@ endif (GIT_ERROR_CODE EQUAL 0)
 add_definitions(-DCMAKE_BUILD)
 add_definitions(-DGIT_RELEASE="${N2N_VERSION}" -DPACKAGE_VERSION="${N2N_VERSION}" -DPACKAGE_OSNAME="${N2N_OSNAME}")
 add_definitions(-DN2N_VERSION="${N2N_VERSION}" -DN2N_OSNAME="${N2N_OSNAME}")
+add_definitions(-static)
 
 
 # Build information
@@ -133,7 +134,7 @@ add_library(n2n STATIC
         src/tuntap_osx.c
         src/n2n_regex.c
         src/network_traffic_filter.c
-        src/sn_selection.c)
+        src/sn_selection.c
         ${n2n_EXTRA}
         )
 
@@ -142,8 +143,8 @@ if(DEFINED WIN32)
 endif(DEFINED WIN32)
 
 if(N2N_OPTION_USE_OPENSSL)
-#  target_link_libraries(n2n crypto)
-  target_link_libraries(n2n ${OPENSSL_LIBRARIES})
+  target_link_libraries(n2n crypto)
+  #target_link_libraries(n2n ${OPENSSL_LIBRARIES})
 endif(N2N_OPTION_USE_OPENSSL)
 
 if(N2N_OPTION_USE_ZSTD)
@@ -151,9 +152,7 @@ if(N2N_OPTION_USE_ZSTD)
 endif(N2N_OPTION_USE_ZSTD)
 
 if(DEFINED WIN32)
-  add_library(edge_utils_win32 src/edge_utils_win32.c)
-  add_subdirectory(win32)
-  target_link_libraries(n2n edge_utils_win32 n2n_win32 iphlpapi)
+  target_link_libraries(n2n n2n_win32 iphlpapi)
 endif(DEFINED WIN32)
 
 add_executable(edge src/edge.c)

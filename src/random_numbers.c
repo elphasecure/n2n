@@ -20,6 +20,10 @@
 #include <errno.h>
 #endif
 
+#ifdef __GNUC__
+#include <x86intrin.h>
+#endif
+
 #include "n2n.h"
 
 

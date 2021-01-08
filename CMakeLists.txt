@@ -87,6 +87,11 @@ if(DEFINED WIN32)
 #  LINK_DIRECTORIES("D:/Program Files/MinGW/opt/lib/" "D:/Program Files/MinGW/x86_64-w64-mingw32/lib/")
 endif(DEFINED WIN32)
 
+set(n2n_EXTRA)
+if(DEFINED WIN32)
+  set(n2n_EXTRA src/edge_utils_win32.c)
+  add_subdirectory(win32)
+endif(DEFINED WIN32)
 
 #aux_source_directory(./src N2N_DIR_SRCS)
 #add_library(n2n STATIC ${N2N_DIR_SRCS})
@@ -110,12 +115,11 @@ add_library(n2n STATIC
         src/tuntap_netbsd.c
         src/tuntap_linux.c
         src/tuntap_osx.c
+        ${n2n_EXTRA}
         )
 
 if(DEFINED WIN32)
-  add_library(edge_utils_win32 src/edge_utils_win32.c)
-  add_subdirectory(win32)
-  target_link_libraries(n2n edge_utils_win32 n2n_win32 )
+  target_link_libraries(n2n n2n_win32)
 endif(DEFINED WIN32)
 
 if(N2N_OPTION_AES)

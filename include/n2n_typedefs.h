@@ -678,9 +678,11 @@ struct sn_community {
 typedef struct regex_t* re_t;
 
 struct sn_community_regular_expression {
-    re_t rule;         /* compiles regular expression */
+    re_t rule;                      /* compiles regular expression */
 
-    UT_hash_handle hh; /* makes this structure hashable */
+    n2n_ip_subnet_t auto_ip_net;    /* Address range of auto ip address service. */
+
+    UT_hash_handle hh;              /* makes this structure hashable */
 };
 
 typedef struct n2n_sn {

@@ -1178,7 +1178,7 @@ static int process_udp (n2n_sn_t * sss,
             n2n_REGISTER_SUPER_ACK_payload_t       *payload;
             size_t                                 encx = 0;
             struct sn_community                    *fed;
-            struct sn_community_regular_expression *re, *tmp_re;
+            struct sn_community_regular_expression *re, *tmp_re, *re_match;
             struct peer_info                       *peer, *tmp_peer, *p;
             int8_t                                 allowed_match = -1;
             uint8_t                                match = 0;
@@ -1221,6 +1221,7 @@ static int process_udp (n2n_sn_t * sss,
                        && (match_length == strlen((const char *)cmn.community)) // --- only full matches allowed (remove, if also partial matches wanted)
                        && (allowed_match == 0)) { // --- only full matches allowed (remove, if also partial matches wanted)
                         match = 1;
+                        re_match = re;
                         break;
                     }
                 }
@@ -1245,7 +1246,12 @@ static int process_udp (n2n_sn_t * sss,
                     HASH_ADD_STR(sss->communities, community, comm);
 
                     traceEvent(TRACE_INFO, "New community: %s", comm->community);
-                    assign_one_ip_subnet(sss, comm);
+                    if(re_match && re_match->auto_ip_net.net_bitlen > 0) {
+                        comm->auto_ip_net = re_match->auto_ip_net;
+                    }
+                    else {
+                        assign_one_ip_subnet(sss, comm);
+                    }
                 }
             }
 

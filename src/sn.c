@@ -85,6 +85,8 @@ static int load_allowed_sn_community (n2n_sn_t *sss, char *path) {
         cmn_str = (char*)calloc(len + 1, sizeof(char));
         has_net = (sscanf(line, "%s %s", cmn_str, net_str) == 2);
 
+        re = NULL;
+        s = NULL;
         // if it contains typical characters...
         if(NULL != strpbrk(cmn_str, ".*+?[]\\")) {
             // ...it is treated as regular expression
@@ -94,14 +96,17 @@ static int load_allowed_sn_community (n2n_sn_t *sss, char *path) {
                 HASH_ADD_PTR(sss->rules, rule, re);
 	        num_regex++;
                 traceEvent(TRACE_INFO, "Added regular expression for allowed communities '%s'", cmn_str);
-                free(cmn_str);
-                continue;
             }
         }
 
-        s = (struct sn_community*)calloc(1,sizeof(struct sn_community));
 
-        if(s != NULL) {
+        if(!re) {
+            s = (struct sn_community*)calloc(1,sizeof(struct sn_community));
+            if(!s) {
+                free(cmn_str);
+                continue;
+            }
+
             comm_init(s,cmn_str);
             /* loaded from file, this community is unpurgeable */
             s->purgeable = COMMUNITY_UNPURGEABLE;
@@ -115,41 +120,47 @@ static int load_allowed_sn_community (n2n_sn_t *sss, char *path) {
             traceEvent(TRACE_INFO, "Added allowed community '%s' [total: %u]",
 		       (char*)s->community, num_communities);
 
-            // check for sub-network address
-            if(has_net) {
-                if(sscanf(net_str, "%15[^/]/%hhu", ip_str, &bitlen) != 2) {
-                    traceEvent(TRACE_WARNING, "Bad net/bit format '%s' for community '%c', ignoring. See comments inside community.list file.",
-		                           net_str, cmn_str);
-                    has_net = 0;
-                }
-                net = inet_addr(ip_str);
-                mask = bitlen2mask(bitlen);
-                if((net == (in_addr_t)(-1)) || (net == INADDR_NONE) || (net == INADDR_ANY)
-	                 || ((ntohl(net) & ~mask) != 0)) {
-                    traceEvent(TRACE_WARNING, "Bad network '%s/%u' in '%s' for community '%s', ignoring.",
-		                           ip_str, bitlen, net_str, cmn_str);
-                    has_net = 0;
-                }
-                if((bitlen > 30) || (bitlen == 0)) {
-                    traceEvent(TRACE_WARNING, "Bad prefix '%hhu' in '%s' for community '%s', ignoring.",
-		                           bitlen, net_str, cmn_str);
-                    has_net = 0;
-                }
+        }
+        // check for sub-network address
+        if(has_net) {
+            if(sscanf(net_str, "%15[^/]/%hhu", ip_str, &bitlen) != 2) {
+                traceEvent(TRACE_WARNING, "Bad net/bit format '%s' for community '%c', ignoring. See comments inside community.list file.",
+                                       net_str, cmn_str);
+                has_net = 0;
             }
-            if(has_net) {
-                s->auto_ip_net.net_addr = ntohl(net);
-                s->auto_ip_net.net_bitlen = bitlen;
-                traceEvent(TRACE_INFO, "Assigned sub-network %s/%u to community '%s'.",
-		                       inet_ntoa(*(struct in_addr *) &net),
-		           s->auto_ip_net.net_bitlen,
-		           s->community);
-            } else {
-                assign_one_ip_subnet(sss, s);
+            net = inet_addr(ip_str);
+            mask = bitlen2mask(bitlen);
+            if((net == (in_addr_t)(-1)) || (net == INADDR_NONE) || (net == INADDR_ANY)
+                     || ((ntohl(net) & ~mask) != 0)) {
+                traceEvent(TRACE_WARNING, "Bad network '%s/%u' in '%s' for community '%s', ignoring.",
+                                       ip_str, bitlen, net_str, cmn_str);
+                has_net = 0;
             }
+            if((bitlen > 30) || (bitlen == 0)) {
+                traceEvent(TRACE_WARNING, "Bad prefix '%hhu' in '%s' for community '%s', ignoring.",
+                                       bitlen, net_str, cmn_str);
+                has_net = 0;
+            }
+        }
+        if(s && has_net) {
+            s->auto_ip_net.net_addr = ntohl(net);
+            s->auto_ip_net.net_bitlen = bitlen;
+            traceEvent(TRACE_INFO, "Assigned sub-network %s/%u to community '%s'.",
+                                   inet_ntoa(*(struct in_addr *) &net),
+                       s->auto_ip_net.net_bitlen,
+                       s->community);
+        } else if (re && has_net) {
+            re->auto_ip_net.net_addr = ntohl(net);
+            re->auto_ip_net.net_bitlen = bitlen;
+            traceEvent(TRACE_INFO, "Assigned sub-network %s/%u to regex communities matching '%s'.",
+                                   inet_ntoa(*(struct in_addr *) &net),
+                       re->auto_ip_net.net_bitlen,
+                       cmn_str);
+        } else if (s) {
+            assign_one_ip_subnet(sss, s);
         }
 
         free(cmn_str);
-
     }
 
     fclose(fd);
